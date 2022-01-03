@@ -8,7 +8,7 @@ Deployment of AKS private cluster using AZ CLI scripts.
 
 
 # Architecture 
-:::image type="content" source="Architecture/Architecture.jpg" alt-text="Architecture":::
+![Architecture diagram](/Architecture/Architecture.jpg)
 
 # Getting Started
 

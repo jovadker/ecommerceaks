@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redhat-web-app
+  namespace: redhat
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: redhat-web-app
+  template:
+    metadata:
+      labels:
+        app: redhat-web-app
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: redhat-web-app
+        image: ecommerceprodregistry.azurecr.io/redhat/ubi8web:1969
+        env:
+        - name: ENVIRONMENT_VARIABLE_1
+          value: "yes"
+        securityContext:
+         capabilities:
+          drop:
+            - NET_RAW
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+        - containerPort: 80
+          name: redhat-web-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redhat-web-app
+  namespace: redhat
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: redhat-web-app
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: redhat-web-app-ingress
+  namespace: redhat
+  annotations: 
+   kubernetes.io/ingress.class: azure/application-gateway
+   appgw.ingress.kubernetes.io/appgw-ssl-certificate: k8secommercesslcert
+   appgw.ingress.kubernetes.io/override-frontend-port: "5000"
+   #service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+           name: redhat-web-app
+           port: 
+            number: 80

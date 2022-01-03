@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redhat-web-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redhat-web-app
+  template:
+    metadata:
+      labels:
+        app: redhat-web-app
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: redhat-web-app
+        image: ecommerceregistry.azurecr.io/redhat/ubi8web:latest
+        env:
+        - name: ENVIRONMENT_VARIABLE_1
+          value: "yes"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        ports:
+        - containerPort: 80
+          name: redhat-web-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redhat-web-app
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: redhat-web-app
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: redhat-web-app-ingress
+  annotations: 
+   kubernetes.io/ingress.class: azure/application-gateway
+   #service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: redhat-web-app
+          servicePort: 80
